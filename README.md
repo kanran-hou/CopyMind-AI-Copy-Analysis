@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CopyMind — AI 文案智能分析小程序
 
 基于 **DeepSeek API** 的多维度文案分析工具。用户粘贴文案 → AI 实时评分 → 输出优化建议。
@@ -123,3 +124,21 @@ pytest
 ## License
 
 MIT
+=======
+## Hi there 👋
+
+<!--
+**kanran-hou/kanran-hou** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+
+Here are some ideas to get you started:
+
+- 🔭 I’m currently working on ...
+- 🌱 I’m currently learning ...
+- 👯 I’m looking to collaborate on ...
+- 🤔 I’m looking for help with ...
+- 💬 Ask me about ...
+- 📫 How to reach me: ...
+- 😄 Pronouns: ...
+- ⚡ Fun fact: ...
+-->
+>>>>>>> 73b489a1b99f5a6d99b57fd4a75b85358aaeea7e
