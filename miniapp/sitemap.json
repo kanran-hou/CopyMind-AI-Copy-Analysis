@@ -1,9 +1,0 @@
-{
-  "desc": "CopyMind 小程序项目文件索引配置",
-  "rules": [
-    {
-      "action": "allow",
-      "page": "*"
-    }
-  ]
-}
