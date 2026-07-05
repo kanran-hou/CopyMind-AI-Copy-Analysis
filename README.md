@@ -1,36 +1,30 @@
-<<<<<<< HEAD
-# CopyMind — AI 文案智能分析小程序
+﻿# CopyMind — AI 文案智能分析工具
 
-基于 **DeepSeek API** 的多维度文案分析工具。用户粘贴文案 → AI 实时评分 → 输出优化建议。
+一键分析营销文案的小程序 + 后端工具。支持小红书种草、电商商品、本地文旅、短视频脚本 4 个赛道，基于规则引擎做多维度评分和优化建议，无需 AI API Key 即可离线体验。
 
 ---
 
 ## 项目结构
 
 ```
-copymind/
-├── backend/         # FastAPI 后端服务（Python 3.11+）
+├── backend/              # FastAPI 后端服务（Python 3.11+）
 │   ├── app/
-│   │   ├── routers/     # API 路由（分析、历史、反馈、知识库、OCR）
+│   │   ├── routers/      # API 路由（分析、历史、反馈、OCR）
 │   │   ├── services/
-│   │   │   ├── llm/         # AI 大模型调度（DeepSeek / 通义千问 / 智谱）
-│   │   │   ├── prompts/     # 4 赛道 Prompt 模板
-│   │   │   ├── analysis/    # 评分与输出解析
-│   │   │   └── knowledge/   # RAG 爆款知识库
+│   │   │   └── analysis/ # 规则驱动文案分析引擎（情绪词库 + 结构评分）
 │   │   ├── models/       # SQLAlchemy 数据模型
 │   │   ├── schemas/      # Pydantic 请求/响应模型
 │   │   └── middleware/   # 限流、请求日志中间件
 │   ├── tests/
-│   ├── alembic/          # 数据库迁移
 │   └── main.py
-├── miniapp/         # 微信小程序前端
+├── miniapp/              # 微信小程序前端（原生 WXML + WXSS + JS）
 │   ├── pages/
 │   │   ├── index/        # 首页（文案录入 + 赛道选择）
-│   │   ├── result/       # 分析结果展示（5 维评分 + 词云 + 建议）
+│   │   ├── result/       # 分析结果（4 维评分 + 优化建议）
 │   │   └── history/      # 历史记录
 │   └── app.js / app.json
-├── database/        # SQL 建表脚本
-└── docs/            # 项目文档
+├── database/             # MySQL 建表脚本
+└── docs/                 # 项目文档
 ```
 
 ---
@@ -41,36 +35,28 @@ copymind/
 
 ```bash
 cd backend
-
-# 安装依赖
-pip install -e .
-
-# 配置环境变量
-cp .env.example .env
-# 编辑 .env，填入你的 DeepSeek API Key
-
-# 启动服务
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+pip install fastapi uvicorn sqlalchemy aiosqlite pydantic pydantic-settings httpx python-multipart
+uvicorn main:app --reload --port 8000
 ```
 
-> 如果未配置 API Key，系统会自动使用 Mock 数据，可离线体验。
+默认使用 SQLite，开箱即用无需配置数据库。如需 MySQL，配置 `.env` 后会自动切换。
 
 ### 2. 运行小程序
 
-1. 用微信开发者工具打开 `miniapp/` 目录
-2. 在开发者工具中勾选 **"不校验合法域名、web-view（业务域名）、TLS 版本以及 HTTPS 证书"**
-3. 编译运行即可
+用微信开发者工具打开 `miniapp/` 目录，勾选 **"不校验合法域名"**，编译即可直连本地后端。
 
 ---
 
-## 支持的赛道
+## 分析维度
 
-| 赛道 | 适用场景 |
-|------|---------|
-| 📕 小红书种草 | 笔记、好物推荐、生活方式 |
-| 🛒 电商商品 | 商品详情页、卖点提炼 |
-| 🏔 本地文旅 | 景区介绍、旅游攻略 |
-| 🎬 短视频脚本 | 抖音/快手口播、剧情脚本 |
+| 维度 | 说明 |
+|------|------|
+| 📝 标题吸引力 | 检测标题长度、数字、问句、emoji、钩子词 |
+| 💬 情绪共鸣 | 情绪词库匹配（正向/共情/焦虑/信任词） |
+| 📐 结构逻辑 | 段落数、句式变化、行动号召（CTA）检测 |
+| 👥 人群匹配 | 赛道关键词、受众定位词、内容长度适配 |
+
+每条分析附带 10 条优化建议（含标题改写、段落调整、情绪词建议）。
 
 ---
 
@@ -78,10 +64,9 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/v1/analyze` | 提交文案，返回 AI 评分 + 优化建议 |
-| GET  | `/api/v1/history` | 查询分析历史记录 |
-| POST | `/api/v1/feedback` | 提交用户反馈 |
-| POST | `/api/v1/ocr` | 图片文字识别 |
+| POST | `/api/v1/analyze` | 提交文案，返回评分 + 优化建议 |
+| GET  | `/api/v1/history` | 历史记录 |
+| POST | `/api/v1/feedback` | 提交反馈 |
 | GET  | `/api/v1/health` | 健康检查 |
 
 ---
@@ -89,56 +74,12 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ## 技术栈
 
 - **前端**：微信小程序原生（WXML + WXSS + JS）
-- **后端**：Python FastAPI + Uvicorn
-- **AI 模型**：DeepSeek Chat API（支持通义千问、智谱 GLM 作为备选）
-- **数据库**：MySQL 8.0（可选，无数据库时分析功能仍可正常使用）
-- **ORM / 迁移**：SQLAlchemy 2.0 + Alembic
-
----
-
-## 本地测试
-
-```bash
-cd backend
-pip install -e ".[dev]"
-pytest
-```
-
----
-
-## 分享给朋友测试
-
-后端在本地运行时，朋友连不上你的 `localhost`。推荐两种方式：
-
-1. **内网穿透（ngrok）**
-   ```bash
-   ngrok http 8000
-   ```
-   然后将 `miniapp/pages/index/index.js` 中的 API 地址改为 ngrok 给出的 HTTPS 地址。
-
-2. **部署到云服务器**
-   将 `backend/` 部署到云服务器，修改小程序中的 API 地址后上传体验版。
+- **后端**：Python FastAPI + Uvicorn + SQLAlchemy
+- **分析引擎**：规则驱动（情绪词库 + 结构评分），离线可用
+- **数据库**：SQLite（默认）/ MySQL 8.0（可选）
 
 ---
 
 ## License
 
 MIT
-=======
-## Hi there 👋
-
-<!--
-**kanran-hou/kanran-hou** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
-
-Here are some ideas to get you started:
-
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
->>>>>>> 73b489a1b99f5a6d99b57fd4a75b85358aaeea7e
